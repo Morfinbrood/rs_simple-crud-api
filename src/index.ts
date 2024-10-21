@@ -1,4 +1,4 @@
-import { createServer } from '../src/server';
+import { createServer } from './server';
 
 createServer().catch(err => {
     console.error('createServer initialization error:', err);
