@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'url';
-import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from './database';  // Import the async functions
+import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from './database';
 import { validate as isValidUUID } from 'uuid';
 
 export const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
@@ -9,7 +9,7 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
 
     try {
 
-        // GET Default route '/'
+        // GET '/'
         if (req.method === 'GET' && pathname === '/') {
             res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end('Hello on server!!!');
@@ -56,7 +56,7 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
                     res.end(JSON.stringify({ message: 'Missing required fields.' }));
                     return;
                 }
-                const newUser = await createUser(username, age, hobbies);  // await the async function
+                const newUser = await createUser(username, age, hobbies);
                 res.writeHead(201);
                 res.end(JSON.stringify(newUser));
             });
@@ -77,7 +77,7 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
             });
             req.on('end', async () => {
                 const { username, age, hobbies } = JSON.parse(body);
-                const updatedUser = await updateUser(userId!, username, age, hobbies);  // await the async function
+                const updatedUser = await updateUser(userId!, username, age, hobbies);
                 if (!updatedUser) {
                     res.writeHead(404);
                     res.end(JSON.stringify({ message: 'User not found.' }));
@@ -97,7 +97,7 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
                 res.end(JSON.stringify({ message: 'Invalid userId format.' }));
                 return;
             }
-            const deleted = await deleteUser(userId!);  // await the async function
+            const deleted = await deleteUser(userId!);
             if (!deleted) {
                 res.writeHead(404);
                 res.end(JSON.stringify({ message: 'User not found.' }));

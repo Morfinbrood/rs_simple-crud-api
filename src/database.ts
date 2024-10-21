@@ -13,7 +13,6 @@ interface User {
 
 let users: User[] = [];
 
-// Load users from JSON file on server startup
 const loadUsersFromFile = async (): Promise<void> => {
     try {
         const data = await fs.readFile(usersFilePath, 'utf-8');
@@ -24,7 +23,6 @@ const loadUsersFromFile = async (): Promise<void> => {
     }
 };
 
-// Save users to JSON file
 const saveUsersToFile = async (): Promise<void> => {
     try {
         const data = JSON.stringify(users, null, 2);
@@ -34,17 +32,14 @@ const saveUsersToFile = async (): Promise<void> => {
     }
 };
 
-// Get all users
 export const getAllUsers = async (): Promise<User[]> => {
     return users;
 };
 
-// Get user by ID
 export const getUserById = async (id: string): Promise<User | undefined> => {
     return users.find(user => user.id === id);
 };
 
-// Create new user
 export const createUser = async (username: string, age: number, hobbies: string[]): Promise<User> => {
     const newUser: User = {
         id: uuidv4(),
@@ -57,7 +52,6 @@ export const createUser = async (username: string, age: number, hobbies: string[
     return newUser;
 };
 
-// Update existing user
 export const updateUser = async (id: string, username: string, age: number, hobbies: string[]): Promise<User | undefined> => {
     const userIndex = users.findIndex(user => user.id === id);
     if (userIndex === -1) return undefined;
@@ -67,7 +61,6 @@ export const updateUser = async (id: string, username: string, age: number, hobb
     return users[userIndex];
 };
 
-// Delete user by ID
 export const deleteUser = async (id: string): Promise<boolean> => {
     const userIndex = users.findIndex(user => user.id === id);
     if (userIndex === -1) return false;
@@ -77,7 +70,6 @@ export const deleteUser = async (id: string): Promise<boolean> => {
     return true;
 };
 
-// Initialize database by loading users from JSON file
 export const initDatabase = async (): Promise<void> => {
     await loadUsersFromFile();
 };
