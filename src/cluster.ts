@@ -1,42 +1,64 @@
 import cluster from 'cluster';
 import os from 'os';
 import http from 'http';
-import { createServer, stopServer } from './server'; // Используем ваши функции создания и остановки сервера
-import { availableParallelism } from 'node:os';
+import { createServer } from './server';
 
-export const numCPUs = availableParallelism() - 1;
+interface User {
+    id: string;
+    username: string;
+    age: number;
+    hobbies: string[];
+}
+
+export const numCPUs = os.cpus().length - 1;
 const PORT = parseInt(process.env.PORT || '4000', 10);
-const WORKER_COUNT = os.cpus().length - 1; // Количество доступных ядер - 1
+const WORKER_COUNT = numCPUs;
+
+let users: User[] = [];
 
 if (cluster.isPrimary) {
     console.log(`Master ${process.pid} is running`);
 
     let currentWorkerIndex = 0;
 
-    // Массив портов для рабочих процессов
     const workerPorts: number[] = [];
 
-    // Запуск рабочих процессов
     for (let i = 0; i < WORKER_COUNT; i++) {
         const worker = cluster.fork();
         const workerPort = PORT + i + 1;
         workerPorts.push(workerPort);
         worker.send({ port: workerPort });
         console.log(`Worker ${worker.process.pid} is listening on port ${workerPort}`);
+
+        worker.on('message', (message) => {
+            if (message.type === 'updateUser') {
+                users.push(message.user);
+
+                for (const id in cluster.workers) {
+                    cluster.workers?.[id]?.send({ type: 'syncUsers', data: users });
+                }
+            }
+            if (message.type === 'deleteUser') {
+                users = users.filter(user => user.id !== message.userId);
+
+                for (const id in cluster.workers) {
+                    cluster.workers?.[id]?.send({ type: 'syncUsers', data: users });
+                }
+            }
+        });
     }
 
-    // Обернем асинхронную логику в функцию
     (async () => {
-        // Балансировщик нагрузки, слушает на порту PORT
-        console.log(`start balancer `)
         const loadBalancer = await createServer(PORT);
+        console.log(`Load balancer is running on port ${PORT}`);
 
         loadBalancer.on('request', (req, res) => {
-            // Реализуем алгоритм round-robin
             const targetPort = workerPorts[currentWorkerIndex];
+            const workerIndex = currentWorkerIndex;
             currentWorkerIndex = (currentWorkerIndex + 1) % WORKER_COUNT;
 
-            // Перенаправляем запрос на следующий рабочий процесс
+            console.log(`Request received: ${req.method} ${req.url}`);
+
             const proxy = http.request({
                 hostname: 'localhost',
                 port: targetPort,
@@ -44,10 +66,8 @@ if (cluster.isPrimary) {
                 method: req.method,
                 headers: req.headers,
             }, (proxyRes) => {
-                if (proxyRes.statusCode !== undefined) {
-                    res.writeHead(proxyRes.statusCode, proxyRes.headers);
-                } else {
-                    res.writeHead(502); // Если статус не определён, возвращаем 502
+                if (!res.headersSent) {
+                    res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
                 }
                 proxyRes.pipe(res, { end: true });
             });
@@ -56,27 +76,34 @@ if (cluster.isPrimary) {
 
             proxy.on('error', (err) => {
                 console.error('Proxy error:', err);
-                res.writeHead(502);
+                if (!res.headersSent) {
+                    res.writeHead(502);
+                }
                 res.end('Bad Gateway');
+            });
+
+            proxy.on('response', () => {
+                console.log(`Response successfully proxied from worker on port: ${targetPort} (Worker ${workerIndex + 1})`);
             });
         });
     })();
-
-    // // Если рабочий процесс завершился, перезапускаем его
-    // cluster.on('exit', (worker) => {
-    //     console.log(`Worker ${worker.process.pid} died`);
-    //     const newWorker = cluster.fork();
-    //     const workerPort = workerPorts.pop() || PORT + WORKER_COUNT; // Определяем новый порт
-    //     workerPorts.push(workerPort);
-    //     newWorker.send({ port: workerPort });
-    //     console.log(`New worker ${newWorker.process.pid} is listening on port ${workerPort}`);
-    // });
-
 } else {
-    // Каждый рабочий процесс получает порт через сообщение от мастера
-    process.on('message', async (message: { port: number }) => {
-        const { port } = message;
-        await createServer(port); // Запускаем сервер на указанном порту
+    process.on('message', async (message: { port?: number, type?: string, data?: User[] }) => {
+        if (message.port) {
+            const { port } = message;
+            await createServer(port);
+        }
+
+        if (message.type === 'syncUsers' && message.data) {
+            users = message.data;
+        }
+    });
+
+    process.on('newUser', (user: User) => {
+        process.send?.({ type: 'updateUser', user });
+    });
+
+    process.on('deleteUser', (userId: string) => {
+        process.send?.({ type: 'deleteUser', userId });
     });
 }
-
