@@ -1,1 +1,1 @@
-# rs_simple-crud-api
+# simple-crud-api
