@@ -6,7 +6,7 @@
   "scripts": {
     "start:dev": "nodemon src/index.ts",
     "start:prod": "tsc && node dist/index.js",
-    "start:multi": "node dist/cluster.js",
+    "start:multi": "ts-node ./src/cluster.ts",
     "test": "jest"
   },
   "keywords": [],

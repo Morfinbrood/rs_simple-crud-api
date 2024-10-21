@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { createServer, stopServer } from '../src/index';
+import { createServer, stopServer } from '../src/server';
 
 let server: any;
 
