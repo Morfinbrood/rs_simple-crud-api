@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
 
-const usersFilePath = join(__dirname, 'db', 'users.json');
+const usersFilePath = join(__dirname, '..', 'db', 'users.json');
 
 interface User {
     id: string;
