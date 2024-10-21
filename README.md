@@ -4,7 +4,6 @@
 
 ## Description
 
-
 Your task is to implement simple CRUD API using in-memory database underneath.
 
 ## Technical requirements
@@ -15,18 +14,50 @@ Your task is to implement simple CRUD API using in-memory database underneath.
 - Prefer asynchronous API whenever possible
 
 ## How to install
+
 npm i
 
-## How to use
+## How to start
+
 use scripts for start:
 npm run start:dev
 npm run start:prod
 npm run start:multi
 npm run test
 
-For easy testing you able to import rs_simple_crud_app.postman_collection.json that in app folder
+For easy testing you able to import rs_simple_crud_app.postman_collection.json in postman
 
+## How to use
 
+1. collection in memory and after start is empty [] - according to requirements
+2. To add new User
+   POST http://localhost:4000/api/users
+   with body like
+   {
+   "username": "testName",
+   "age": 38,
+   "hobbies": ["reading", "gaming", "hiking"]
+   }
+3. copy new userId in responce or get it in
+   GET http://localhost:4000/api/users/280586fa-d2da-4a8e-91d7-2cb200492d97 <-put your userID
+4. for update user
+   PUT http://localhost:4000/api/users/280586fa-d2da-4a8e-91d7-2cb200492d97 <-put your userID
+   Attention: will update only field that you want update like, other fields not change
+   {
+   "age": 39,
+   "hobbies": ["reading"]
+   }
+5. for delete user
+   DELETE http://localhost:4000/api/users/661f68fa-dfcd-49ff-acc9-db661450c5f0 <-put existed userID to delete
+6. for get list of users GET http://localhost:4000/api/users
+
+7. I disable direct requests to workers like
+   GET http://localhost:4001/api/users -> {"message": "Direct access to worker is forbidden."}
+   workers get routes only from loadBalancer
+8. For LoadBalancer state of db should be consistent between different workers
+9. You able looks what going on in logs
+10. For testLoadBalancer pls wait while all workers start own server (LOGS)
+11. enjoy it!)
 
 ## Implementation details
 
