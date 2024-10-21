@@ -1,0 +1,20 @@
+[
+  {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "username": "JohnDoe",
+    "age": 30,
+    "hobbies": ["reading", "gaming", "hiking"]
+  },
+  {
+    "id": "b50ef80b-39b6-445a-9a12-674f6497d7d9",
+    "username": "JaneSmith",
+    "age": 25,
+    "hobbies": ["painting", "cycling", "cooking"]
+  },
+  {
+    "id": "b0c6f5b0-2265-4b5e-88d8-f7176fa44b92",
+    "username": "AliceJohnson",
+    "age": 28,
+    "hobbies": ["writing", "traveling", "photography"]
+  }
+]
