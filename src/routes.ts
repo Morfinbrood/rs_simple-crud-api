@@ -65,7 +65,7 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
 
                     const newUser = await createUser(username, age, hobbies);
                     res.writeHead(201);
-                    res.end(JSON.stringify({ message: `user created`, ...newUser }));
+                    res.end(JSON.stringify(newUser));
                 } catch (error) {
                     res.writeHead(400);
                     res.end(JSON.stringify({ message: 'Invalid JSON format or missing required fields.' }));
@@ -95,7 +95,7 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
                     res.end(JSON.stringify({ message: 'User not found.' }));
                 } else {
                     res.writeHead(201);
-                    res.end(JSON.stringify({ message: `user updated`, ...updatedUser }));
+                    res.end(JSON.stringify(updatedUser));
                 }
             });
             return;

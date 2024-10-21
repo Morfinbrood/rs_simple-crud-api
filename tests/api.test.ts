@@ -11,7 +11,7 @@ afterAll(async () => {
     await stopServer();
 });
 
-// this is integration tests
+// Integration tests
 describe('User API', () => {
     let userId: string;
     const newUser = { username: 'John', age: 30, hobbies: ['reading', 'gaming'] };
@@ -47,7 +47,11 @@ describe('User API', () => {
         const updateUserData = { username: 'Katia Updated', age: 45 };
         const response = await request(server).put(`/api/users/${userId}`).send(updateUserData);
         expect(response.status).toBe(201);
+        expect(response.body.username).toBe(updateUserData.username);
+        expect(response.body.age).toBe(updateUserData.age);
+        expect(response.body.hobbies).toEqual(newUser.hobbies);
 
+        // chck in db
         const responseUpdatedUser = await request(server).get(`/api/users/${userId}`);
         expect(responseUpdatedUser.body.username).toBe(updateUserData.username);
         expect(responseUpdatedUser.body.age).toBe(updateUserData.age);
