@@ -14,6 +14,20 @@ Your task is to implement simple CRUD API using in-memory database underneath.
 - Use 22.x.x version (22.9.0 or upper) of Node.js
 - Prefer asynchronous API whenever possible
 
+## How to install
+npm i
+
+## How to use
+use scripts for start:
+npm run start:dev
+npm run start:prod
+npm run start:multi
+npm run test
+
+For easy testing you able to import rs_simple_crud_app.postman_collection.json that in app folder
+
+
+
 ## Implementation details
 
 1. Implemented endpoint `api/users`:
