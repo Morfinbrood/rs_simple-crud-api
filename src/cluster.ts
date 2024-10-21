@@ -20,7 +20,6 @@ if (cluster.isPrimary) {
     console.log(`Master ${process.pid} is running`);
 
     let currentWorkerIndex = 0;
-
     const workerPorts: number[] = [];
 
     for (let i = 0; i < WORKER_COUNT; i++) {
@@ -33,14 +32,12 @@ if (cluster.isPrimary) {
         worker.on('message', (message) => {
             if (message.type === 'updateUser') {
                 users.push(message.user);
-
                 for (const id in cluster.workers) {
                     cluster.workers?.[id]?.send({ type: 'syncUsers', data: users });
                 }
             }
             if (message.type === 'deleteUser') {
                 users = users.filter(user => user.id !== message.userId);
-
                 for (const id in cluster.workers) {
                     cluster.workers?.[id]?.send({ type: 'syncUsers', data: users });
                 }
@@ -64,7 +61,10 @@ if (cluster.isPrimary) {
                 port: targetPort,
                 path: req.url,
                 method: req.method,
-                headers: req.headers,
+                headers: {
+                    ...req.headers,
+                    'x-load-balancer': 'true'
+                },
             }, (proxyRes) => {
                 if (!res.headersSent) {
                     res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
@@ -91,7 +91,7 @@ if (cluster.isPrimary) {
     process.on('message', async (message: { port?: number, type?: string, data?: User[] }) => {
         if (message.port) {
             const { port } = message;
-            await createServer(port);
+            await createServer(port, true);
         }
 
         if (message.type === 'syncUsers' && message.data) {

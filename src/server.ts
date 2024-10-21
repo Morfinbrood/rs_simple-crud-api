@@ -6,12 +6,20 @@ dotenv.config();
 
 let server: http.Server | null = null;
 
-export const createServer = async (port?: number) => {
+export const createServer = async (port?: number, isWorker = false) => {
     if (!port) {
         port = parseInt(process.env.PORT || '4000', 10);
     }
 
-    server = http.createServer(handleRequest);
+    server = http.createServer((req, res) => {
+        if (isWorker && req.headers['x-load-balancer'] !== 'true') {
+            res.writeHead(403, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'Direct access to worker is forbidden.' }));
+            return;
+        }
+        handleRequest(req, res);
+    });
+
     server.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
     });
