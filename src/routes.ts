@@ -50,15 +50,26 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
                 body += chunk.toString();
             });
             req.on('end', async () => {
-                const { username, age, hobbies } = JSON.parse(body);
-                if (!username || age === undefined || !hobbies) {
+                try {
+                    const { username, age, hobbies } = JSON.parse(body);
+
+                    if (
+                        !username || typeof username !== 'string' || username.trim() === '' ||
+                        age === undefined || typeof age !== 'number' ||
+                        !Array.isArray(hobbies)
+                    ) {
+                        res.writeHead(400);
+                        res.end(JSON.stringify({ message: 'Missing or invalid required fields. Expected: username (string), age (number), hobbies (array).' }));
+                        return;
+                    }
+
+                    const newUser = await createUser(username, age, hobbies);
+                    res.writeHead(201);
+                    res.end(JSON.stringify({ message: `user created`, ...newUser }));
+                } catch (error) {
                     res.writeHead(400);
-                    res.end(JSON.stringify({ message: 'Missing required fields.' }));
-                    return;
+                    res.end(JSON.stringify({ message: 'Invalid JSON format or missing required fields.' }));
                 }
-                const newUser = await createUser(username, age, hobbies);
-                res.writeHead(201);
-                res.end(JSON.stringify(newUser));
             });
             return;
         }
@@ -77,13 +88,14 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
             });
             req.on('end', async () => {
                 const { username, age, hobbies } = JSON.parse(body);
+
                 const updatedUser = await updateUser(userId!, username, age, hobbies);
                 if (!updatedUser) {
                     res.writeHead(404);
                     res.end(JSON.stringify({ message: 'User not found.' }));
                 } else {
-                    res.writeHead(200);
-                    res.end(JSON.stringify(updatedUser));
+                    res.writeHead(201);
+                    res.end(JSON.stringify({ message: `user updated`, ...updatedUser }));
                 }
             });
             return;
@@ -97,8 +109,8 @@ export const handleRequest = async (req: IncomingMessage, res: ServerResponse) =
                 res.end(JSON.stringify({ message: 'Invalid userId format.' }));
                 return;
             }
-            const deleted = await deleteUser(userId!);
-            if (!deleted) {
+            const deletedUser = await deleteUser(userId!);
+            if (!deletedUser) {
                 res.writeHead(404);
                 res.end(JSON.stringify({ message: 'User not found.' }));
             } else {

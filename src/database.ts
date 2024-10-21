@@ -52,13 +52,22 @@ export const createUser = async (username: string, age: number, hobbies: string[
     return newUser;
 };
 
-export const updateUser = async (id: string, username: string, age: number, hobbies: string[]): Promise<User | undefined> => {
+export const updateUser = async (id: string, username?: string, age?: number, hobbies?: string[]): Promise<User | undefined> => {
     const userIndex = users.findIndex(user => user.id === id);
     if (userIndex === -1) return undefined;
 
-    users[userIndex] = { id, username, age, hobbies };
+    const currentUser = users[userIndex];
+
+    const updatedUser = {
+        ...currentUser,
+        ...(username !== undefined && { username }),
+        ...(age !== undefined && { age }),
+        ...(hobbies !== undefined && { hobbies }),
+    };
+
+    users[userIndex] = updatedUser;
     saveUsersToFile();
-    return users[userIndex];
+    return updatedUser;
 };
 
 export const deleteUser = async (id: string): Promise<boolean> => {
